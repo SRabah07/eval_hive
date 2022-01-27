@@ -65,7 +65,6 @@ root@ba74b599cf13:/opt#
 - Connect to `hive-server` / `Hive`
 
 ```bash
-```bash
 (base) ➜  Eval_Hive docker exec -it hive-server bash
 root@ba74b599cf13:/opt# hive
 SLF4J: Class path contains multiple SLF4J bindings.
@@ -172,7 +171,7 @@ hive>
 
 First, I created a `temporary` table
 
-```hive
+```sql
 CREATE TABLE movies_tmp
 (
     titleId STRING,
@@ -194,7 +193,7 @@ LOAD DATA INPATH '/title.akas.tsv' INTO TABLE movies_tmp;
 
 The execution tace
 
-```hive
+```sql
 hive> CREATE TABLE movies_tmp
     > (
     >     titleId STRING,
@@ -256,7 +255,7 @@ Let try to create buckets for this table using for example `language`, as users 
 
 Using a simple query to compute a number of distinct languages
 
-```hive
+```sql
 hive> SELECT COUNT(DISTINCT language) FROM movies_tmp;
 WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
 Query ID = root_20220127154218_8b72e639-45eb-4e36-b8a5-b3d545446b0e
@@ -286,7 +285,7 @@ hive>
 
 We have `106` different languages. We could create a new table by using clusters on the column `language`
 
-```hive
+```sql
 CREATE TABLE movies
 (
     titleId STRING,
@@ -307,7 +306,7 @@ STORED AS TEXTFILE;
 
 The execution below is to creating the table and inserting into it using the `movies_tmp`. Please note that I am using `...` to simplify the trace.
 
-```hive
+```sql
 INSERT INTO TABLE movies
 SELECT titleId, ordering, title, region, language, types, attributes, isOriginalTitle
 FROM movies_tmp;
@@ -366,7 +365,7 @@ root@8cc681711ae0:/opt#
 
 Same logic then the `movies` table, I creating a temporary table and then I create a buckets on `(startYear, endYear)`
 
-```hive
+```sql
 CREATE TABLE movies_details_tmp
 (
     titleId STRING,
@@ -415,8 +414,7 @@ FROM movies_details_tmp;
 
 The console trace
 
-```hive
-```hive
+```sql
 
 hive> CREATE TABLE movies_details_tmp
     > (
@@ -500,7 +498,7 @@ Contains the director and writer information for all the titles in IMDb:
 - `directors (array of nconsts)` - director(s) of the given title
 - `writers (array of nconsts)` – writer(s) of the given title
 
-```hive
+```sql
 CREATE TABLE crew
 (
     titleId STRING,
@@ -516,7 +514,7 @@ LOAD DATA INPATH '/title.crew.tsv' INTO TABLE crew;
 ```
 
 execution trace is
-```hive
+```sql
 hive> CREATE TABLE crew
     > (
     >     titleId STRING,
@@ -551,7 +549,7 @@ Here I am creating a temporary table, as I'll add buckets on `seasonNumber` and 
 
 the queries are
 
-```hive
+```sql
 CREATE TABLE episodes_tmp
      (
          titleId STRING,
@@ -586,7 +584,7 @@ FROM episodes_tmp;
 
 And the execution trace is: 
 
-```hive
+```sql
     >          parentTconst STRING,
     >          seasonNumber INT,
     >          episodeNumber INT
@@ -658,7 +656,7 @@ Contains the principal cast/crew for titles:
 
 The table creation and the execution trace:
 
-```hive
+```sql
 CREATE TABLE principals
      (
          titleId STRING,
@@ -676,7 +674,7 @@ CREATE TABLE principals
 LOAD DATA INPATH '/title.principals.tsv' INTO TABLE principals;
 ```
 
-```hive
+```sql
 hive> CREATE TABLE principals
     >      (
     >          titleId STRING,
@@ -710,7 +708,7 @@ Contains the IMDb rating and votes information for titles
 
 The queries are
 
-```hive
+```sql
 CREATE TABLE ratings_tmp
      (
          titleId STRING,
@@ -743,7 +741,7 @@ FROM ratings_tmp;
 
 And the execution trace is
 
-```hive
+```sql
 hive> CREATE TABLE ratings_tmp
     >      (
     >          titleId STRING,
@@ -816,7 +814,7 @@ Contains the following information for names:
 
 The queries are:
 
-```hive
+```sql
 CREATE TABLE persons_tmp
 (
     tconst STRING,
@@ -854,7 +852,7 @@ FROM persons_tmp;
 ```
 And the execution trace is:
 
-```hive
+```sql
 hive> CREATE TABLE persons_tmp
     > (
     >     tconst STRING,
@@ -933,7 +931,7 @@ root@8cc681711ae0:/opt#
 
 Below the list of table of the `imdb` table
 
-```hive
+```sql
 hive> SHOW TABLES;
 OK
 tab_name
@@ -954,7 +952,7 @@ hive>
 
 - Some Basic Queries (Counting, ...)
 
-```hive
+```sql
 hive> SELECT COUNT(*) FROM movies;
 OK
 _c0
@@ -1014,7 +1012,7 @@ Time taken: 0.149 seconds, Fetched: 4 row(s)
 - Query giving all field of movies (`title.akas.tsv`) and movies details (`title.basics.tsv`)
 
 
-```hive
+```sql
 hive> SELECT * FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId LIMIT 10;
 WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
 Query ID = root_20220127164239_9f5ccf59-da0b-40db-bd63-44b1bc673d64
@@ -1029,55 +1027,7 @@ In order to set a constant number of reducers:
   set mapreduce.job.reduces=<number>
 Job running in-process (local Hadoop)
 2022-01-27 16:42:41,690 Stage-1 map = 0%,  reduce = 0%
-2022-01-27 16:42:47,692 Stage-1 map = 1%,  reduce = 0%
-2022-01-27 16:42:53,697 Stage-1 map = 3%,  reduce = 0%
-2022-01-27 16:42:56,699 Stage-1 map = 5%,  reduce = 0%
-2022-01-27 16:43:04,707 Stage-1 map = 8%,  reduce = 0%
-2022-01-27 16:43:07,711 Stage-1 map = 10%,  reduce = 0%
-2022-01-27 16:43:09,680 Stage-1 map = 100%,  reduce = 0%
-2022-01-27 16:43:15,686 Stage-1 map = 12%,  reduce = 0%
-2022-01-27 16:43:21,695 Stage-1 map = 15%,  reduce = 0%
-2022-01-27 16:43:24,698 Stage-1 map = 16%,  reduce = 0%
-2022-01-27 16:43:33,708 Stage-1 map = 19%,  reduce = 0%
-2022-01-27 16:43:36,711 Stage-1 map = 21%,  reduce = 0%
-2022-01-27 16:43:37,714 Stage-1 map = 100%,  reduce = 0%
-2022-01-27 16:43:43,687 Stage-1 map = 22%,  reduce = 0%
-2022-01-27 16:43:49,693 Stage-1 map = 26%,  reduce = 0%
-2022-01-27 16:44:01,706 Stage-1 map = 30%,  reduce = 0%
-2022-01-27 16:44:04,709 Stage-1 map = 32%,  reduce = 0%
-2022-01-27 16:44:06,711 Stage-1 map = 100%,  reduce = 0%
-2022-01-27 16:44:12,694 Stage-1 map = 33%,  reduce = 0%
-2022-01-27 16:44:15,698 Stage-1 map = 37%,  reduce = 0%
-2022-01-27 16:44:24,709 Stage-1 map = 41%,  reduce = 0%
-2022-01-27 16:44:27,713 Stage-1 map = 100%,  reduce = 0%
-2022-01-27 16:44:33,722 Stage-1 map = 48%,  reduce = 0%
-2022-01-27 16:44:42,700 Stage-1 map = 53%,  reduce = 0%
-2022-01-27 16:44:43,702 Stage-1 map = 100%,  reduce = 0%
-2022-01-27 16:44:49,710 Stage-1 map = 59%,  reduce = 0%
-2022-01-27 16:45:01,724 Stage-1 map = 62%,  reduce = 0%
-2022-01-27 16:45:04,727 Stage-1 map = 64%,  reduce = 0%
-2022-01-27 16:45:06,730 Stage-1 map = 100%,  reduce = 0%
-2022-01-27 16:45:12,702 Stage-1 map = 71%,  reduce = 0%
-2022-01-27 16:45:21,711 Stage-1 map = 76%,  reduce = 0%
-2022-01-27 16:45:22,776 Stage-1 map = 100%,  reduce = 0%
-2022-01-27 16:45:28,783 Stage-1 map = 83%,  reduce = 0%
-2022-01-27 16:45:31,788 Stage-1 map = 85%,  reduce = 0%
-2022-01-27 16:45:33,791 Stage-1 map = 100%,  reduce = 0%
-2022-01-27 16:45:35,793 Stage-1 map = 89%,  reduce = 0%
-2022-01-27 16:45:36,794 Stage-1 map = 100%,  reduce = 0%
-2022-01-27 16:45:41,821 Stage-1 map = 100%,  reduce = 11%
-2022-01-27 16:45:45,827 Stage-1 map = 100%,  reduce = 100%
-2022-01-27 16:45:46,829 Stage-1 map = 100%,  reduce = 22%
-2022-01-27 16:45:49,834 Stage-1 map = 100%,  reduce = 100%
-2022-01-27 16:45:50,836 Stage-1 map = 100%,  reduce = 33%
-2022-01-27 16:45:54,842 Stage-1 map = 100%,  reduce = 100%
-2022-01-27 16:45:55,844 Stage-1 map = 100%,  reduce = 44%
-2022-01-27 16:45:59,853 Stage-1 map = 100%,  reduce = 56%
-2022-01-27 16:46:03,859 Stage-1 map = 100%,  reduce = 100%
-2022-01-27 16:46:04,862 Stage-1 map = 100%,  reduce = 67%
-2022-01-27 16:46:08,829 Stage-1 map = 100%,  reduce = 78%
-2022-01-27 16:46:12,953 Stage-1 map = 100%,  reduce = 100%
-2022-01-27 16:46:13,955 Stage-1 map = 100%,  reduce = 89%
+...
 2022-01-27 16:46:17,966 Stage-1 map = 100%,  reduce = 100%
 Ended Job = job_local73517776_0010
 MapReduce Jobs Launched:
@@ -1101,7 +1051,7 @@ hive>
 
 - Same query then previous but with projections
 
-```
+```sql
 set hive.cli.print.header=true;
 SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear
 FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId LIMIT 3;
@@ -1125,17 +1075,6 @@ Job running in-process (local Hadoop)
 2022-01-27 16:51:41,574 Stage-1 map = 1%,  reduce = 0%
 2022-01-27 16:51:44,576 Stage-1 map = 3%,  reduce = 0%
 ...
-2022-01-27 16:54:10,583 Stage-1 map = 100%,  reduce = 22%
-2022-01-27 16:54:14,589 Stage-1 map = 100%,  reduce = 100%
-2022-01-27 16:54:15,591 Stage-1 map = 100%,  reduce = 33%
-2022-01-27 16:54:18,597 Stage-1 map = 100%,  reduce = 100%
-2022-01-27 16:54:19,598 Stage-1 map = 100%,  reduce = 44%
-2022-01-27 16:54:22,632 Stage-1 map = 100%,  reduce = 100%
-2022-01-27 16:54:23,634 Stage-1 map = 100%,  reduce = 56%
-2022-01-27 16:54:26,640 Stage-1 map = 100%,  reduce = 100%
-2022-01-27 16:54:27,641 Stage-1 map = 100%,  reduce = 67%
-2022-01-27 16:54:31,647 Stage-1 map = 100%,  reduce = 78%
-2022-01-27 16:54:35,695 Stage-1 map = 100%,  reduce = 100%
 2022-01-27 16:54:36,697 Stage-1 map = 100%,  reduce = 89%
 2022-01-27 16:54:39,668 Stage-1 map = 100%,  reduce = 100%
 Ended Job = job_local211627547_0011
@@ -1153,7 +1092,7 @@ hive>
 
 - details on movies
 
-```hive
+```sql
 set hive.cli.print.header=true;
 SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear,
 c.directors, c.writers, r.averageRating, r.numVotes
@@ -1206,12 +1145,11 @@ hive>
 
 - Crew And Movies
 
-For this part, we observe that the writers and directors are defined as a list in the `crew` table, one solution that I found (I don't know if it's the better) is
-to create two new tables by flatten the two columns as below, which allows me to join into `persons` table
+For this part, we observe that the writers and directors are defined as a list in the `crew` table, one solution that I found (I don't know if it's the better) is to create two new tables by flatten the two columns as below, which allows me to join into `persons` table. I am using the `lateral view explode` syntax to achieve this purpose.
 
 The queries are:
 
-```
+```sql
 CREATE TABLE writers
 (
     titleId STRING,
@@ -1250,7 +1188,7 @@ lateral view explode(split(c.directors, ',')) v as directorId;
 
 And the execution trace is:
 
-```
+```sql
 hive> CREATE TABLE writers
     > (
     >     titleId STRING,
@@ -1332,7 +1270,7 @@ hive>
 
 Now we can use the query to get the writers / directors names (But it fails)
 
-```
+```sql
 set hive.cli.print.header=true;
 SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear, p.primaryName as writers
 FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId 
@@ -1369,7 +1307,7 @@ Some sample of indices creation on `persons` table
 
 ` set hive.cli.print.header=true;` to enable the header of the table.
 
-```hive
+```sql
 hive> CREATE INDEX tconst_index ON TABLE persons (tconst) AS 'COMPACT' WITH DEFERRED REBUILD;
 OK
 Time taken: 0.208 seconds
@@ -1381,7 +1319,7 @@ hive>
 
 ```
 
-```hive
+```sql
 hive> select * from persons WHERE primaryName = 'Fred Astaire';
 OK
 persons.tconst	persons.primaryname	persons.primaryprofession	persons.knownfortitles	persons.birthyear	persons.deathyear
@@ -1411,7 +1349,7 @@ hive>
 - Below some queries on dates:
 
 
-```hive
+```sql
 hive> SELECT COUNT(*) FROM persons_tmp WHERE birthYear > 1920;
 WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
 Query ID = root_20220126162211_4d03c7b6-cd69-47bf-8e01-f6ed89283540
@@ -1517,7 +1455,7 @@ We observe a better performances using `buckets` even if the difference in the d
 
 The query below, retrieves each persons and group its professions
 
-```hive
+```sql
 > SELECT primaryName, collect_set(primaryProfession) FROM persons GROUP BY primaryName ORDER BY primaryName DESC LIMIT 5;
 WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
 Query ID = root_20220126211846_9347b510-8938-4317-946d-37491d7d1654
@@ -1564,7 +1502,7 @@ hive>
 
 Same idea but for known movies
 
-```hive
+```sql
 hive> SELECT primaryName, collect_set(knownForTitles) as knownForTitles FROM persons GROUP BY primaryName ORDER BY primaryName DESC LIMIT 5;
 WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
 Query ID = root_20220126212127_f4e48b56-150a-4b99-b8e2-ee8b80b241f6
