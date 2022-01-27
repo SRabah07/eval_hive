@@ -1,11 +1,12 @@
-echo "Download Dataset..."
-wget https://datasets.imdbws.com/name.basics.tsv.gz
+for file in 'title.akas.tsv.gz' 'title.basics.tsv.gz' 'title.crew.tsv.gz' 'title.episode.tsv.gz' 'title.principals.tsv.gz' 'title.ratings.tsv.gz' 'name.basics.tsv.gz'; 
+do
+    echo "Download Dataset of $file"
+    wget https://datasets.imdbws.com/$file
+    gunzip $file
+done
 
-echo "Unzip Dataset..."
-gunzip name.basics.tsv.gz
-
-echo "Move dataset to 'data' volume used by docker"
-mv name.basics.tsv data/
+echo "Move all dataset to "data" volume used by docker"
+mv *.tsv data/
 
 ls -lrt data
 echo "done!"
