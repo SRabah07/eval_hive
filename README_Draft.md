@@ -1068,10 +1068,9 @@ FIELDS TERMINATED BY "\t"
 LINES TERMINATED BY "\n"
 STORED AS TEXTFILE;
 
-```
-
-```hive
 LOAD DATA INPATH '/title.akas.tsv' INTO TABLE movies_tmp;
+
+
 ```
 
 ```hive
@@ -1424,7 +1423,7 @@ ROW FORMAT DELIMITED
 FIELDS TERMINATED BY "\t"
 LINES TERMINATED BY "\n"
 STORED AS TEXTFILE;
-LOAD DATA INPATH '/itle.crew.tsv' INTO TABLE crew;
+LOAD DATA INPATH '/title.crew.tsv' INTO TABLE crew;
 
 ```
 
@@ -1444,8 +1443,6 @@ hive> CREATE TABLE crew
     > STORED AS TEXTFILE;
 OK
 Time taken: 0.149 seconds
-hive> LOAD DATA INPATH '/itle.crew.tsv' INTO TABLE crew;
-FAILED: SemanticException Line 1:17 Invalid path ''/itle.crew.tsv'': No files matching path hdfs://namenode:8020/itle.crew.tsv
 hive> LOAD DATA INPATH '/title.crew.tsv' INTO TABLE crew;
 Loading data to table imdb.crew
 OK
@@ -1773,4 +1770,860 @@ STORED AS TEXTFILE;
 INSERT INTO TABLE persons
 SELECT tconst, primaryName, primaryProfession, knownForTitles, birthYear, deathYear
 FROM persons_tmp;
+```
+
+
+```hive
+hive> CREATE TABLE persons_tmp
+    > (
+    >     tconst STRING,
+    >     primaryName STRING,
+    >     birthYear INT,
+    >     deathYear INT,
+    >     primaryProfession STRING,
+    >     knownForTitles STRING
+    > )
+    > ROW FORMAT DELIMITED
+    > FIELDS TERMINATED BY "\t"
+    > LINES TERMINATED BY "\n"
+    > STORED AS TEXTFILE;
+OK
+Time taken: 0.102 seconds
+hive>
+    > LOAD DATA INPATH '/name.basics.tsv' INTO TABLE persons_tmp;
+Loading data to table imdb.persons_tmp
+OK
+Time taken: 0.426 seconds
+hive> CREATE TABLE persons
+    > (
+    >     tconst STRING,
+    >     primaryName STRING,
+    >     primaryProfession STRING,
+    >     knownForTitles STRING,
+    >     birthYear int,
+    >     deathYear INT
+    > )
+    > CLUSTERED BY (birthYear, deathYear) INTO 20 BUCKETS
+    > ROW FORMAT DELIMITED
+    > FIELDS TERMINATED BY "\t"
+    > LINES TERMINATED BY "\n"
+    > STORED AS TEXTFILE;
+OK
+Time taken: 0.081 seconds
+hive> INSERT INTO TABLE persons
+    > SELECT tconst, primaryName, primaryProfession, knownForTitles, birthYear, deathYear
+    > FROM persons_tmp;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20220127163646_cc1af5a6-ba88-4371-8de0-61e7cd0b3de0
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 20
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2022-01-27 16:36:48,495 Stage-1 map = 0%,  reduce = 0%
+...
+2022-01-27 16:39:07,659 Stage-1 map = 100%,  reduce = 80%
+2022-01-27 16:39:08,662 Stage-1 map = 100%,  reduce = 95%
+2022-01-27 16:39:09,632 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local1132467771_0009
+Loading data to table imdb.persons
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 209221112402 HDFS Write: 65730826822 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+Time taken: 143.826 seconds
+hive>
+
+```
+
+## HDFS
+
+```bash
+root@8cc681711ae0:/opt# hdfs dfs -ls -R /user/hive/warehouse/imdb.db/
+drwxrwxr-x   - root supergroup          0 2022-01-27 16:12 /user/hive/warehouse/imdb.db/crew
+-rwxrwxr-x   3 root supergroup  280057014 2022-01-27 15:31 /user/hive/warehouse/imdb.db/crew/title.crew.tsv
+drwxrwxr-x   - root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000000_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000001_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000002_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000003_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000004_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000005_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000006_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000007_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000008_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000009_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000010_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000011_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000012_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000013_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000014_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000015_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000016_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000017_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000018_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000019_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000020_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000021_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000022_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000023_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000024_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000025_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000026_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000027_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000028_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000029_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000030_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000031_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000032_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000033_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000034_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000035_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000036_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000037_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000038_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000039_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000040_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000041_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000042_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000043_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000044_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000045_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000046_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000047_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000048_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000049_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000050_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000051_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000052_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000053_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000054_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000055_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000056_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000057_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000058_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000059_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000060_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000061_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000062_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000063_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000064_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000065_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000066_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000067_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000068_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000069_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000070_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000071_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000072_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000073_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000074_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000075_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000076_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000077_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000078_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000079_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000080_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000081_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000082_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000083_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000084_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000085_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000086_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000087_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000088_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000089_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000090_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000091_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000092_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000093_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000094_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000095_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000096_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000097_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000098_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes/000099_0
+drwxrwxr-x   - root supergroup          0 2022-01-27 16:17 /user/hive/warehouse/imdb.db/episodes_tmp
+-rwxrwxr-x   3 root supergroup  167206109 2022-01-27 15:31 /user/hive/warehouse/imdb.db/episodes_tmp/title.episode.tsv
+drwxrwxr-x   - root supergroup          0 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies
+-rwxrwxr-x   3 root supergroup  328418165 2022-01-27 15:51 /user/hive/warehouse/imdb.db/movies/000000_0
+-rwxrwxr-x   3 root supergroup  147822929 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000001_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000002_0
+-rwxrwxr-x   3 root supergroup        298 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000003_0
+-rwxrwxr-x   3 root supergroup      63059 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000004_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000005_0
+-rwxrwxr-x   3 root supergroup         83 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000006_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000007_0
+-rwxrwxr-x   3 root supergroup        766 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000008_0
+-rwxrwxr-x   3 root supergroup     329408 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000009_0
+-rwxrwxr-x   3 root supergroup    1565719 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000010_0
+-rwxrwxr-x   3 root supergroup         97 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000011_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000012_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000013_0
+-rwxrwxr-x   3 root supergroup       2848 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000014_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000015_0
+-rwxrwxr-x   3 root supergroup         60 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000016_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000017_0
+-rwxrwxr-x   3 root supergroup      77513 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000018_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000019_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000020_0
+-rwxrwxr-x   3 root supergroup      62090 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000021_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000022_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000023_0
+-rwxrwxr-x   3 root supergroup       3074 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000024_0
+-rwxrwxr-x   3 root supergroup     395292 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000025_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000026_0
+-rwxrwxr-x   3 root supergroup       6110 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000027_0
+-rwxrwxr-x   3 root supergroup     935869 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000028_0
+-rwxrwxr-x   3 root supergroup  221822602 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000029_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000030_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000031_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000032_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000033_0
+-rwxrwxr-x   3 root supergroup      33437 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000034_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000035_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000036_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000037_0
+-rwxrwxr-x   3 root supergroup      86048 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000038_0
+-rwxrwxr-x   3 root supergroup       4343 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000039_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000040_0
+-rwxrwxr-x   3 root supergroup   19799862 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000041_0
+-rwxrwxr-x   3 root supergroup        705 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000042_0
+-rwxrwxr-x   3 root supergroup      31490 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000043_0
+-rwxrwxr-x   3 root supergroup         52 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000044_0
+-rwxrwxr-x   3 root supergroup       9339 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000045_0
+-rwxrwxr-x   3 root supergroup  160793310 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000046_0
+-rwxrwxr-x   3 root supergroup       1285 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000047_0
+-rwxrwxr-x   3 root supergroup      23776 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000048_0
+-rwxrwxr-x   3 root supergroup       1467 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000049_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000050_0
+-rwxrwxr-x   3 root supergroup    2167495 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000051_0
+-rwxrwxr-x   3 root supergroup         37 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000052_0
+-rwxrwxr-x   3 root supergroup      19408 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000053_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000054_0
+-rwxrwxr-x   3 root supergroup      25389 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000055_0
+-rwxrwxr-x   3 root supergroup       3939 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000056_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000057_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000058_0
+-rwxrwxr-x   3 root supergroup     165933 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000059_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000060_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000061_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000062_0
+-rwxrwxr-x   3 root supergroup        263 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000063_0
+-rwxrwxr-x   3 root supergroup       1329 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000064_0
+-rwxrwxr-x   3 root supergroup        376 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000065_0
+-rwxrwxr-x   3 root supergroup     141057 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000066_0
+-rwxrwxr-x   3 root supergroup       4865 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000067_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000068_0
+-rwxrwxr-x   3 root supergroup       3522 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000069_0
+-rwxrwxr-x   3 root supergroup        168 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000070_0
+-rwxrwxr-x   3 root supergroup  160257807 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000071_0
+-rwxrwxr-x   3 root supergroup      24522 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000072_0
+-rwxrwxr-x   3 root supergroup      44106 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000073_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000074_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000075_0
+-rwxrwxr-x   3 root supergroup  164839374 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000076_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000077_0
+-rwxrwxr-x   3 root supergroup         49 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000078_0
+-rwxrwxr-x   3 root supergroup     249697 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000079_0
+-rwxrwxr-x   3 root supergroup        703 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000080_0
+-rwxrwxr-x   3 root supergroup        284 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000081_0
+-rwxrwxr-x   3 root supergroup         53 2022-01-27 15:52 /user/hive/warehouse/imdb.db/movies/000082_0
+-rwxrwxr-x   3 root supergroup  188281987 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000083_0
+-rwxrwxr-x   3 root supergroup      63820 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000084_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000085_0
+-rwxrwxr-x   3 root supergroup       4010 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000086_0
+-rwxrwxr-x   3 root supergroup      46898 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000087_0
+-rwxrwxr-x   3 root supergroup  168036768 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000088_0
+-rwxrwxr-x   3 root supergroup        233 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000089_0
+-rwxrwxr-x   3 root supergroup       9131 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000090_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000091_0
+-rwxrwxr-x   3 root supergroup         64 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000092_0
+-rwxrwxr-x   3 root supergroup      54343 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000093_0
+-rwxrwxr-x   3 root supergroup      14386 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000094_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000095_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000096_0
+-rwxrwxr-x   3 root supergroup      32469 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000097_0
+-rwxrwxr-x   3 root supergroup          0 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000098_0
+-rwxrwxr-x   3 root supergroup       1503 2022-01-27 15:53 /user/hive/warehouse/imdb.db/movies/000099_0
+drwxrwxr-x   - root supergroup          0 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details
+-rwxrwxr-x   3 root supergroup  510177486 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000000_0
+-rwxrwxr-x   3 root supergroup    1853611 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000001_0
+-rwxrwxr-x   3 root supergroup    2475354 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000002_0
+-rwxrwxr-x   3 root supergroup    3678330 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000003_0
+-rwxrwxr-x   3 root supergroup    3658275 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000004_0
+-rwxrwxr-x   3 root supergroup    4389533 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000005_0
+-rwxrwxr-x   3 root supergroup    3361685 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000006_0
+-rwxrwxr-x   3 root supergroup    3476254 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000007_0
+-rwxrwxr-x   3 root supergroup    3289316 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000008_0
+-rwxrwxr-x   3 root supergroup    2761487 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000009_0
+-rwxrwxr-x   3 root supergroup    5048808 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000010_0
+-rwxrwxr-x   3 root supergroup    3710174 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000011_0
+-rwxrwxr-x   3 root supergroup    3128437 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000012_0
+-rwxrwxr-x   3 root supergroup    2568637 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000013_0
+-rwxrwxr-x   3 root supergroup    2338080 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000014_0
+-rwxrwxr-x   3 root supergroup    4189546 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000015_0
+-rwxrwxr-x   3 root supergroup    1783073 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000016_0
+-rwxrwxr-x   3 root supergroup    1784625 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000017_0
+-rwxrwxr-x   3 root supergroup    1795728 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000018_0
+-rwxrwxr-x   3 root supergroup    1774498 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000019_0
+-rwxrwxr-x   3 root supergroup    5207370 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000020_0
+-rwxrwxr-x   3 root supergroup    4359676 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000021_0
+-rwxrwxr-x   3 root supergroup    7250124 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000022_0
+-rwxrwxr-x   3 root supergroup    4337933 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000023_0
+-rwxrwxr-x   3 root supergroup    4774172 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000024_0
+-rwxrwxr-x   3 root supergroup    4377321 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000025_0
+-rwxrwxr-x   3 root supergroup    2333227 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000026_0
+-rwxrwxr-x   3 root supergroup    1977206 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000027_0
+-rwxrwxr-x   3 root supergroup    2535613 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000028_0
+-rwxrwxr-x   3 root supergroup    1708249 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000029_0
+-rwxrwxr-x   3 root supergroup    9045663 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000030_0
+-rwxrwxr-x   3 root supergroup     723697 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000031_0
+-rwxrwxr-x   3 root supergroup     742035 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000032_0
+-rwxrwxr-x   3 root supergroup     622663 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000033_0
+-rwxrwxr-x   3 root supergroup     711186 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000034_0
+-rwxrwxr-x   3 root supergroup     919704 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000035_0
+-rwxrwxr-x   3 root supergroup     614389 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000036_0
+-rwxrwxr-x   3 root supergroup     662935 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000037_0
+-rwxrwxr-x   3 root supergroup     712058 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000038_0
+-rwxrwxr-x   3 root supergroup     613258 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000039_0
+-rwxrwxr-x   3 root supergroup    1890058 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000040_0
+-rwxrwxr-x   3 root supergroup    1571702 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000041_0
+-rwxrwxr-x   3 root supergroup    2877500 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000042_0
+-rwxrwxr-x   3 root supergroup    3593263 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000043_0
+-rwxrwxr-x   3 root supergroup    5267596 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000044_0
+-rwxrwxr-x   3 root supergroup    4223646 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000045_0
+-rwxrwxr-x   3 root supergroup    1347900 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000046_0
+-rwxrwxr-x   3 root supergroup    1253364 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000047_0
+-rwxrwxr-x   3 root supergroup    1246014 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000048_0
+-rwxrwxr-x   3 root supergroup     901305 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000049_0
+-rwxrwxr-x   3 root supergroup    2412513 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000050_0
+-rwxrwxr-x   3 root supergroup     975297 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000051_0
+-rwxrwxr-x   3 root supergroup    1732973 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000052_0
+-rwxrwxr-x   3 root supergroup     924647 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000053_0
+-rwxrwxr-x   3 root supergroup    1121329 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000054_0
+-rwxrwxr-x   3 root supergroup    1432305 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000055_0
+-rwxrwxr-x   3 root supergroup     748850 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000056_0
+-rwxrwxr-x   3 root supergroup     782408 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000057_0
+-rwxrwxr-x   3 root supergroup    1259844 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000058_0
+-rwxrwxr-x   3 root supergroup     938754 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000059_0
+-rwxrwxr-x   3 root supergroup    7736210 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000060_0
+-rwxrwxr-x   3 root supergroup     528496 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000061_0
+-rwxrwxr-x   3 root supergroup     586578 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000062_0
+-rwxrwxr-x   3 root supergroup     515574 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000063_0
+-rwxrwxr-x   3 root supergroup     443912 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000064_0
+-rwxrwxr-x   3 root supergroup     830749 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000065_0
+-rwxrwxr-x   3 root supergroup     393941 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000066_0
+-rwxrwxr-x   3 root supergroup     402599 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000067_0
+-rwxrwxr-x   3 root supergroup     402949 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000068_0
+-rwxrwxr-x   3 root supergroup     387985 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000069_0
+-rwxrwxr-x   3 root supergroup    1018376 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000070_0
+-rwxrwxr-x   3 root supergroup     433002 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000071_0
+-rwxrwxr-x   3 root supergroup     683995 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000072_0
+-rwxrwxr-x   3 root supergroup     509006 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000073_0
+-rwxrwxr-x   3 root supergroup     465672 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000074_0
+-rwxrwxr-x   3 root supergroup    1065400 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000075_0
+-rwxrwxr-x   3 root supergroup     519408 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000076_0
+-rwxrwxr-x   3 root supergroup     483229 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000077_0
+-rwxrwxr-x   3 root supergroup     576338 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000078_0
+-rwxrwxr-x   3 root supergroup     532108 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000079_0
+-rwxrwxr-x   3 root supergroup    1763627 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000080_0
+-rwxrwxr-x   3 root supergroup     519755 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000081_0
+-rwxrwxr-x   3 root supergroup     720618 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000082_0
+-rwxrwxr-x   3 root supergroup     706090 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000083_0
+-rwxrwxr-x   3 root supergroup     770949 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000084_0
+-rwxrwxr-x   3 root supergroup    1286267 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000085_0
+-rwxrwxr-x   3 root supergroup     838055 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000086_0
+-rwxrwxr-x   3 root supergroup     883733 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000087_0
+-rwxrwxr-x   3 root supergroup     988184 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000088_0
+-rwxrwxr-x   3 root supergroup    1180418 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000089_0
+-rwxrwxr-x   3 root supergroup    4022129 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000090_0
+-rwxrwxr-x   3 root supergroup     720826 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000091_0
+-rwxrwxr-x   3 root supergroup     810886 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000092_0
+-rwxrwxr-x   3 root supergroup     844394 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000093_0
+-rwxrwxr-x   3 root supergroup     692237 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000094_0
+-rwxrwxr-x   3 root supergroup    1160288 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000095_0
+-rwxrwxr-x   3 root supergroup     917709 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000096_0
+-rwxrwxr-x   3 root supergroup     617150 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000097_0
+-rwxrwxr-x   3 root supergroup     599763 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000098_0
+-rwxrwxr-x   3 root supergroup     455749 2022-01-27 16:01 /user/hive/warehouse/imdb.db/movies_details/000099_0
+drwxrwxr-x   - root supergroup          0 2022-01-27 15:59 /user/hive/warehouse/imdb.db/movies_details_tmp
+-rwxrwxr-x   3 root supergroup  738652304 2022-01-27 15:31 /user/hive/warehouse/imdb.db/movies_details_tmp/title.basics.tsv
+drwxrwxr-x   - root supergroup          0 2022-01-27 15:37 /user/hive/warehouse/imdb.db/movies_tmp
+-rwxrwxr-x   3 root supergroup 1535986357 2022-01-27 15:29 /user/hive/warehouse/imdb.db/movies_tmp/title.akas.tsv
+drwxrwxr-x   - root supergroup          0 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons
+-rwxrwxr-x   3 root supergroup  637731972 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000000_0
+-rwxrwxr-x   3 root supergroup    2286748 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000001_0
+-rwxrwxr-x   3 root supergroup    2302870 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000002_0
+-rwxrwxr-x   3 root supergroup    2158342 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000003_0
+-rwxrwxr-x   3 root supergroup    2295620 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000004_0
+-rwxrwxr-x   3 root supergroup    2200121 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000005_0
+-rwxrwxr-x   3 root supergroup    2297685 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000006_0
+-rwxrwxr-x   3 root supergroup    2236138 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000007_0
+-rwxrwxr-x   3 root supergroup    2269008 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000008_0
+-rwxrwxr-x   3 root supergroup    2277610 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000009_0
+-rwxrwxr-x   3 root supergroup    2294855 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000010_0
+-rwxrwxr-x   3 root supergroup    2317618 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000011_0
+-rwxrwxr-x   3 root supergroup    2252667 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000012_0
+-rwxrwxr-x   3 root supergroup    2284331 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000013_0
+-rwxrwxr-x   3 root supergroup    2220015 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000014_0
+-rwxrwxr-x   3 root supergroup    2284330 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000015_0
+-rwxrwxr-x   3 root supergroup    2217048 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000016_0
+-rwxrwxr-x   3 root supergroup    2308671 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000017_0
+-rwxrwxr-x   3 root supergroup    2328820 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000018_0
+-rwxrwxr-x   3 root supergroup    2266811 2022-01-27 16:39 /user/hive/warehouse/imdb.db/persons/000019_0
+drwxrwxr-x   - root supergroup          0 2022-01-27 16:36 /user/hive/warehouse/imdb.db/persons_tmp
+-rwxrwxr-x   3 root supergroup  680831344 2022-01-27 15:33 /user/hive/warehouse/imdb.db/persons_tmp/name.basics.tsv
+drwxrwxr-x   - root supergroup          0 2022-01-27 16:29 /user/hive/warehouse/imdb.db/principals
+-rwxrwxr-x   3 root supergroup 2138352514 2022-01-27 15:33 /user/hive/warehouse/imdb.db/principals/title.principals.tsv
+drwxrwxr-x   - root supergroup          0 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings
+-rwxrwxr-x   3 root supergroup    2224989 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings/000000_0
+-rwxrwxr-x   3 root supergroup    1969181 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings/000001_0
+-rwxrwxr-x   3 root supergroup    2749825 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings/000002_0
+-rwxrwxr-x   3 root supergroup     924887 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings/000003_0
+-rwxrwxr-x   3 root supergroup    3027604 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings/000004_0
+-rwxrwxr-x   3 root supergroup    1528968 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings/000005_0
+-rwxrwxr-x   3 root supergroup    2315152 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings/000006_0
+-rwxrwxr-x   3 root supergroup    1767757 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings/000007_0
+-rwxrwxr-x   3 root supergroup    2524883 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings/000008_0
+-rwxrwxr-x   3 root supergroup    1784702 2022-01-27 16:33 /user/hive/warehouse/imdb.db/ratings/000009_0
+drwxrwxr-x   - root supergroup          0 2022-01-27 16:32 /user/hive/warehouse/imdb.db/ratings_tmp
+-rwxrwxr-x   3 root supergroup   20817965 2022-01-27 15:34 /user/hive/warehouse/imdb.db/ratings_tmp/title.ratings.tsv
+root@8cc681711ae0:/opt#
+
+
+```
+
+## Queries
+
+```hive
+hive> SHOW TABLES;
+OK
+crew
+episodes
+episodes_tmp
+movies
+movies_details
+movies_details_tmp
+movies_tmp
+persons
+persons_tmp
+principals
+ratings
+ratings_tmp
+Time taken: 0.078 seconds, Fetched: 12 row(s)
+hive>
+
+```
+
+
+- Query giving all field of movies (`title.akas.tsv`) and movies details (`title.basics.tsv`)
+
+
+```hive
+hive> SELECT * FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId LIMIT 10;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20220127164239_9f5ccf59-da0b-40db-bd63-44b1bc673d64
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 9
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2022-01-27 16:42:41,690 Stage-1 map = 0%,  reduce = 0%
+2022-01-27 16:42:47,692 Stage-1 map = 1%,  reduce = 0%
+2022-01-27 16:42:53,697 Stage-1 map = 3%,  reduce = 0%
+2022-01-27 16:42:56,699 Stage-1 map = 5%,  reduce = 0%
+2022-01-27 16:43:04,707 Stage-1 map = 8%,  reduce = 0%
+2022-01-27 16:43:07,711 Stage-1 map = 10%,  reduce = 0%
+2022-01-27 16:43:09,680 Stage-1 map = 100%,  reduce = 0%
+2022-01-27 16:43:15,686 Stage-1 map = 12%,  reduce = 0%
+2022-01-27 16:43:21,695 Stage-1 map = 15%,  reduce = 0%
+2022-01-27 16:43:24,698 Stage-1 map = 16%,  reduce = 0%
+2022-01-27 16:43:33,708 Stage-1 map = 19%,  reduce = 0%
+2022-01-27 16:43:36,711 Stage-1 map = 21%,  reduce = 0%
+2022-01-27 16:43:37,714 Stage-1 map = 100%,  reduce = 0%
+2022-01-27 16:43:43,687 Stage-1 map = 22%,  reduce = 0%
+2022-01-27 16:43:49,693 Stage-1 map = 26%,  reduce = 0%
+2022-01-27 16:44:01,706 Stage-1 map = 30%,  reduce = 0%
+2022-01-27 16:44:04,709 Stage-1 map = 32%,  reduce = 0%
+2022-01-27 16:44:06,711 Stage-1 map = 100%,  reduce = 0%
+2022-01-27 16:44:12,694 Stage-1 map = 33%,  reduce = 0%
+2022-01-27 16:44:15,698 Stage-1 map = 37%,  reduce = 0%
+2022-01-27 16:44:24,709 Stage-1 map = 41%,  reduce = 0%
+2022-01-27 16:44:27,713 Stage-1 map = 100%,  reduce = 0%
+2022-01-27 16:44:33,722 Stage-1 map = 48%,  reduce = 0%
+2022-01-27 16:44:42,700 Stage-1 map = 53%,  reduce = 0%
+2022-01-27 16:44:43,702 Stage-1 map = 100%,  reduce = 0%
+2022-01-27 16:44:49,710 Stage-1 map = 59%,  reduce = 0%
+2022-01-27 16:45:01,724 Stage-1 map = 62%,  reduce = 0%
+2022-01-27 16:45:04,727 Stage-1 map = 64%,  reduce = 0%
+2022-01-27 16:45:06,730 Stage-1 map = 100%,  reduce = 0%
+2022-01-27 16:45:12,702 Stage-1 map = 71%,  reduce = 0%
+2022-01-27 16:45:21,711 Stage-1 map = 76%,  reduce = 0%
+2022-01-27 16:45:22,776 Stage-1 map = 100%,  reduce = 0%
+2022-01-27 16:45:28,783 Stage-1 map = 83%,  reduce = 0%
+2022-01-27 16:45:31,788 Stage-1 map = 85%,  reduce = 0%
+2022-01-27 16:45:33,791 Stage-1 map = 100%,  reduce = 0%
+2022-01-27 16:45:35,793 Stage-1 map = 89%,  reduce = 0%
+2022-01-27 16:45:36,794 Stage-1 map = 100%,  reduce = 0%
+2022-01-27 16:45:41,821 Stage-1 map = 100%,  reduce = 11%
+2022-01-27 16:45:45,827 Stage-1 map = 100%,  reduce = 100%
+2022-01-27 16:45:46,829 Stage-1 map = 100%,  reduce = 22%
+2022-01-27 16:45:49,834 Stage-1 map = 100%,  reduce = 100%
+2022-01-27 16:45:50,836 Stage-1 map = 100%,  reduce = 33%
+2022-01-27 16:45:54,842 Stage-1 map = 100%,  reduce = 100%
+2022-01-27 16:45:55,844 Stage-1 map = 100%,  reduce = 44%
+2022-01-27 16:45:59,853 Stage-1 map = 100%,  reduce = 56%
+2022-01-27 16:46:03,859 Stage-1 map = 100%,  reduce = 100%
+2022-01-27 16:46:04,862 Stage-1 map = 100%,  reduce = 67%
+2022-01-27 16:46:08,829 Stage-1 map = 100%,  reduce = 78%
+2022-01-27 16:46:12,953 Stage-1 map = 100%,  reduce = 100%
+2022-01-27 16:46:13,955 Stage-1 map = 100%,  reduce = 89%
+2022-01-27 16:46:17,966 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local73517776_0010
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 197748350021 HDFS Write: 53377985790 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+tt0000008	2	フレッド・オット－のくしゃみ	JP	ja	imdbDisplay	NULL	NULL	tt0000008	short	Edison Kinetoscopic Record of a Sneeze	Edison Kinetoscopic Record of a Sneeze	NULL	1894	NULL	1	NULL	NULL
+tt0000008	8	Чхання Фреда Отта	UA	NULL	imdbDisplay	NULL	NULL	tt0000008	short	Edison Kinetoscopic Record of a Sneeze	Edison Kinetoscopic Record of a Sneeze	NULL	1894	NULL	1	NULL	NULL
+tt0000008	7	Чих, записанный на кинетоскоп Эдисона	RU	NULL	imdbDisplay	NULL	NULL	tt0000008	short	Edison Kinetoscopic Record of a Sneeze	Edison Kinetoscopic Record of a Sneeze	NULL	1894	NULL	1	NULL	NULL
+tt0000008	10	Edison kinetoskopische Aufnahme eines Niesens	DE	NULL	NULL	literal title	NULL	tt0000008	short	Edison Kinetoscopic Record of a Sneeze	Edison Kinetoscopic Record of a Sneeze	NULL	1894	NULL	1	NULL	NULL
+tt0000008	1	Edison asszisztense tüsszent	HU	NULL	imdbDisplay	NULL	NULL	tt0000008	short	Edison Kinetoscopic Record of a Sneeze	Edison Kinetoscopic Record of a Sneeze	NULL	1894	NULL	1	NULL	NULL
+tt0000008	3	Edison Kinetoscopic Record of a Sneeze, January 7, 1894	US	NULL	NULL	complete title	NULL	tt0000008	short	Edison Kinetoscopic Record of a Sneeze	Edison Kinetoscopic Record of a Sneeze	NULL	1894	NULL	1	NULL	NULL
+tt0000008	4	Edison Kinetoscopic Record of a Sneeze	US	NULL	imdbDisplay	NULL	NULL	tt0000008	short	Edison Kinetoscopic Record of a Sneeze	Edison Kinetoscopic Record of a Sneeze	NULL	1894	NULL	1	NULL	NULL
+tt0000008	5	Edison Kinetoscopic Record of a Sneeze	NULL	NULL	original	NULL	NULL	tt0000008	short	Edison Kinetoscopic Record of a Sneeze	Edison Kinetoscopic Record of a Sneeze	NULL	1894	NULL	1	NULL	NULL
+tt0000008	6	Fred Otts Niesen	DE	NULL	NULL	literal title	NULL	tt0000008	short	Edison Kinetoscopic Record of a Sneeze	Edison Kinetoscopic Record of a Sneeze	NULL	1894	NULL	1	NULL	NULL
+tt0000008	9	Fred Ott's Sneeze	NULL	NULL	NULL	NULL	NULL	tt0000008	short	Edison Kinetoscopic Record of a Sneeze	Edison Kinetoscopic Record of a Sneeze	NULL	1894	NULL	1	NULL	NULL
+Time taken: 218.001 seconds, Fetched: 10 row(s)
+hive>
+
+```
+
+- Same query then previous but with projections
+
+```
+set hive.cli.print.header=true;
+SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear
+FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId LIMIT 3;
+
+hive> set hive.cli.print.header=true;
+hive> SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear
+    > FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId LIMIT 3;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20220127165135_ed6fecf1-44f0-44b1-98e0-b08727a684cf
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 9
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+2022-01-27 16:51:36,605 Stage-1 map = 0%,  reduce = 0%
+2022-01-27 16:51:41,574 Stage-1 map = 1%,  reduce = 0%
+2022-01-27 16:51:44,576 Stage-1 map = 3%,  reduce = 0%
+...
+2022-01-27 16:54:10,583 Stage-1 map = 100%,  reduce = 22%
+2022-01-27 16:54:14,589 Stage-1 map = 100%,  reduce = 100%
+2022-01-27 16:54:15,591 Stage-1 map = 100%,  reduce = 33%
+2022-01-27 16:54:18,597 Stage-1 map = 100%,  reduce = 100%
+2022-01-27 16:54:19,598 Stage-1 map = 100%,  reduce = 44%
+2022-01-27 16:54:22,632 Stage-1 map = 100%,  reduce = 100%
+2022-01-27 16:54:23,634 Stage-1 map = 100%,  reduce = 56%
+2022-01-27 16:54:26,640 Stage-1 map = 100%,  reduce = 100%
+2022-01-27 16:54:27,641 Stage-1 map = 100%,  reduce = 67%
+2022-01-27 16:54:31,647 Stage-1 map = 100%,  reduce = 78%
+2022-01-27 16:54:35,695 Stage-1 map = 100%,  reduce = 100%
+2022-01-27 16:54:36,697 Stage-1 map = 100%,  reduce = 89%
+2022-01-27 16:54:39,668 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local211627547_0011
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 238497168953 HDFS Write: 53377985790 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+m.titleid	m.title	m.region	m.language	md.titletype	md.primarytitle	md.language	md.startyear	md.endyear
+tt0000008	フレッド・オット－のくしゃみ	JP	ja	short	Edison Kinetoscopic Record of a Sneeze	1894	NULL	1
+tt0000008	Edison kinetoskopische Aufnahme eines Niesens	DE	NULL	short	Edison Kinetoscopic Record of a Sneeze	1894	NULL	1
+tt0000008	Чих, записанный на кинетоскоп Эдисона	RU	NULL	short	Edison Kinetoscopic Record of a Sneeze	1894	NULL	1
+Time taken: 185.666 seconds, Fetched: 3 row(s)
+hive>
+```
+
+- details on movies
+
+```hive
+set hive.cli.print.header=true;
+SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear,
+c.directors, c.writers, r.averageRating, r.numVotes
+FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId 
+INNER JOIN crew c ON c.titleId = md.titleId
+INNER JOIN ratings r ON r.titleId = md.titleId
+
+LIMIT 3;
+
+hive> set hive.cli.print.header=true;
+hive> SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear,
+    > c.directors, c.writers, r.averageRating, r.numVotes
+    > FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId
+    > INNER JOIN crew c ON c.titleId = md.titleId
+    > INNER JOIN ratings r ON r.titleId = md.titleId
+    >
+    > LIMIT 3;
+No Stats for imdb@movies, Columns: titleid, language, title, region
+No Stats for imdb@movies_details, Columns: titletype, titleid, startyear, language, endyear, primarytitle
+No Stats for imdb@crew, Columns: titleid, directors, writers
+No Stats for imdb@ratings, Columns: averagerating, titleid, numvotes
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20220127170147_17d916ac-8aac-4912-9ca4-9f40c4a53b23
+Total jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks not specified. Estimated from input data size: 11
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapreduce.job.reduces=<number>
+Job running in-process (local Hadoop)
+...
+2022-01-27 17:06:02,758 Stage-1 map = 100%,  reduce = 89%
+2022-01-27 17:06:03,760 Stage-1 map = 100%,  reduce = 91%
+2022-01-27 17:06:07,733 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_local1495599393_0012
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 363318369011 HDFS Write: 68205204065 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+m.titleid	m.title	m.region	m.language	md.titletype	md.primarytitle	md.language	md.startyear	md.endyear	c.directors	c.writers	r.averagerating	r.numvotes
+tt0000002	Клоун и его собаки	RU	NULL	short	Le clown et ses chiens	1892	NULL	5	nm0721526	NULL	6.0	241
+tt0000002	Clovnul si cainii sai	RO	NULL	short	Le clown et ses chiens	1892	NULL	5	nm0721526	NULL	6.0	241
+tt0000002	Der Clown und seine Hunde	DE	NULL	short	Le clown et ses chiens	1892	NULL	5	nm0721526	NULL	6.0	241
+Time taken: 261.368 seconds, Fetched: 3 row(s)
+hive>
+```
+
+- Crew And Movies
+
+For this part, we observe that the writers and directors are defined as a list in the `crew` table, one solution that I found (I don't know if it's the better) is
+to create two new tables by flatten the two columns as below, which allows me to join into `persons` table
+
+
+
+I wasn't able to find another solution to be able to joi
+
+```
+CREATE TABLE writers
+(
+    titleId STRING,
+    writerId STRING
+
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY "\t"
+LINES TERMINATED BY "\n"
+STORED AS TEXTFILE;
+
+CREATE TABLE directors
+(
+    titleId STRING,
+    directorId STRING
+
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY "\t"
+LINES TERMINATED BY "\n"
+STORED AS TEXTFILE;
+
+
+INSERT INTO TABLE writers
+SELECT titleId, v.writerId
+FROM crew c
+lateral view explode(split(c.writers, ',')) v as writerId;
+
+
+INSERT INTO TABLE directors
+SELECT titleId, v.directorId
+FROM crew c
+lateral view explode(split(c.directors, ',')) v as directorId;
+
+```
+
+
+```
+hive> CREATE TABLE writers
+    > (
+    >     titleId STRING,
+    >     writerId STRING
+    >
+    > )
+    > ROW FORMAT DELIMITED
+    > FIELDS TERMINATED BY "\t"
+    > LINES TERMINATED BY "\n"
+    > STORED AS TEXTFILE;
+OK
+Time taken: 0.19 seconds
+hive>
+    > CREATE TABLE directors
+    > (
+    >     titleId STRING,
+    >     directorId STRING
+    >
+    > )
+    > ROW FORMAT DELIMITED
+    > FIELDS TERMINATED BY "\t"
+    > LINES TERMINATED BY "\n"
+    > STORED AS TEXTFILE;
+OK
+Time taken: 0.084 seconds
+hive> INSERT INTO TABLE writers
+    > SELECT titleId, v.writerId
+    > FROM crew c
+    > lateral view explode(split(c.writers, ',')) v as writerId;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20220127175545_9792d2a9-6c89-41a6-9bdc-024942fd0a70
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Job running in-process (local Hadoop)
+2022-01-27 17:55:47,518 Stage-1 map = 0%,  reduce = 0%
+2022-01-27 17:56:31,508 Stage-1 map = 25%,  reduce = 0%
+2022-01-27 17:57:12,466 Stage-1 map = 100%,  reduce = 0%
+Ended Job = job_local380154532_0016
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://namenode:8020/user/hive/warehouse/imdb.db/writers/.hive-staging_hive_2022-01-27_17-55-45_909_7192408020119550831-1/-ext-10000
+Loading data to table imdb.writers
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 39092693856 HDFS Write: 6801113860 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+titleid	v.writerid
+Time taken: 91.261 seconds
+hive> INSERT INTO TABLE directors
+    > SELECT titleId, v.directorId
+    > FROM crew c
+    > lateral view explode(split(c.directors, ',')) v as directorId;
+WARNING: Hive-on-MR is deprecated in Hive 2 and may not be available in the future versions. Consider using a different execution engine (i.e. spark, tez) or using Hive 1.X releases.
+Query ID = root_20220127175840_b79de295-ec60-42f5-ab87-ade14bf3facb
+Total jobs = 3
+Launching Job 1 out of 3
+Number of reduce tasks is set to 0 since there's no reduce operator
+Job running in-process (local Hadoop)
+2022-01-27 17:58:42,165 Stage-1 map = 0%,  reduce = 0%
+2022-01-27 17:59:11,143 Stage-1 map = 25%,  reduce = 0%
+2022-01-27 17:59:38,122 Stage-1 map = 100%,  reduce = 0%
+Ended Job = job_local2071632951_0017
+Stage-4 is selected by condition resolver.
+Stage-3 is filtered out by condition resolver.
+Stage-5 is filtered out by condition resolver.
+Moving data to directory hdfs://namenode:8020/user/hive/warehouse/imdb.db/directors/.hive-staging_hive_2022-01-27_17-58-40_680_6963433886087530232-1/-ext-10000
+Loading data to table imdb.directors
+MapReduce Jobs Launched:
+Stage-Stage-1:  HDFS Read: 39652824582 HDFS Write: 7069019000 SUCCESS
+Total MapReduce CPU Time Spent: 0 msec
+OK
+titleid	v.directorid
+Time taken: 60.931 seconds
+hive>
+
+```
+
+Now we can use the query to get the writers names
+
+
+```
+set hive.cli.print.header=true;
+SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear, p.primaryName as writers
+FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId 
+INNER JOIN writers w ON w.titleId = md.titleId
+INNER JOIN persons p ON p.tconst = w.writerId 
+LIMIT 3;
+
+
+set hive.cli.print.header=true;
+SELECT m.titleId, m.title, collect_set(p.primaryName) as writers
+FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId 
+INNER JOIN writers w ON w.titleId = md.titleId
+INNER JOIN persons p ON p.tconst = w.writerId 
+GROUP BY m.titleId, m.title
+LIMIT 3;
+
+```
+
+
+
+
+
+
+
+
+
+---
+
+```
+
+
+
+set hive.cli.print.header=true;
+SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear,
+c.directors, c.writers, r.averageRating, r.numVotes
+FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId 
+INNER JOIN crew c ON c.titleId = md.titleId
+INNER JOIN persons p ON p.tconst IN 
+INNER JOIN ratings r ON r.titleId = md.titleId
+
+LIMIT 3;
+
+
+SELECT * FROM crew c INNER JOIN persons p ON p.tconst IN c.directors LIMIT 2;
+
+
+SELECT titleId, new_Subs_clmn
+FROM crew c view explode(split(c.directors,',')) c.directors AS directors LIMIT 3;
+
+
+
+SELECT explode(split(c.writers, ',')) FROM crew c LIMIT 5;
+
+
+SELECT c. FROM crew c INNER JOIN persons p ON p.tconst IN c.directors LIMIT 2;
+
+
+
+set hive.cli.print.header=true;
+SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear
+FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId 
+INNER JOIN crew c ON c.titleId = m.titleId
+LIMIT 3;
+
+
+set hive.cli.print.header=true;
+SELECT m.titleId, m.title, m.region, m.language, md.titleType, md.primaryTitle, md.language, md.startYear, md.endYear, 
+explode(split(c.writers, ',')) as writers
+FROM movies m INNER JOIN movies_details md ON m.titleId = md.titleId 
+INNER JOIN crew c ON c.titleId = m.titleId
+INNER JOIN persons p ON p.tconst = writers
+LIMIT 3;
+
+
+
+INNER JOIN (SELECT c.titleId, explode(split(c.writers, ',')) as writers FROM crew c) AS cr ON cr.titleId = m.titleId;
+
+INNER JOIN crew c ON c.titleId = md.titleId
+INNER JOIN persons p ON p.tconst IN 
+
 ```
